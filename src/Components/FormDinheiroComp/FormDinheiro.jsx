@@ -1,8 +1,10 @@
-import { Button, Card, Col, Form, Row } from "react-bootstrap";
+import { Button, Card, Col, Form, Row, Alert } from "react-bootstrap";
 import { useState } from "react";
+import { FaCheckCircle } from "react-icons/fa";
+import { data } from "react-router-dom";
 
 function FormDinheiro({ onSave, onCancel }) {
-
+    // Estados
     const [doaDinheiro, setDoaDinheiro] = useState({
         data: "",
         valor: "",
@@ -12,64 +14,144 @@ function FormDinheiro({ onSave, onCancel }) {
         evento: "",
         observacoes: ""
     });
-
     const [validated, setValidated] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [showAlert, setShowAlert] = useState(false);
+    const [dataDinheiro, setDataDinheiro] = useState("");
+    const [valorDinheiro, setValorDinheiro] = useState("");
+    const [destinatario, setDestinatario] = useState("");
+    // -----
+    // Funções de manipulação de eventos
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setDoaDinheiro((prevState) => ({
-            ...prevState,
-            [name]: name === "valor" ? parseFloat(value) : value
-        }));
+    const handleChangeData = (e) => {
+        const value = e.target.value;
+        setDataDinheiro(value);
+        if (value && new Date(value) < new Date()) {
+            setErrors((prev) => ({ ...prev, data: null }));
+        } else {
+            if (value === "") {
+                setErrors((prev) => ({ ...prev, data: "A data deve ser preenchida" }));
+                setValidated(false);
+            } else {
+                setErrors((prev) => ({ ...prev, data: "A data não pode ser maior do que hoje" }))
+                setValidated(false);
+            }
+        }
+    }
+
+    const handleChangeValor = (e) => {
+        const value = e.target.value;
+        setValorDinheiro(value);
+        if (value && !isNaN(value) && parseFloat(value) >= 0) {
+            setErrors((prev) => ({...prev, valor: null}));
+        } else {
+            if (value === "") {
+                setErrors((prev) => ({ ...prev, valor: "O valor deve ser preenchido" }));
+                setValidated(false);
+            } else {
+                setErrors((prev) => ({ ...prev, valor: "Valor inválido" }));
+                setValidated(false);
+            }
+        }
+    }
+
+    const handleChamgeDestinatario = (e) => {
+        const value = e.target.value;
+        setDestinatario(value);
+        if (value) {
+            setErrors((prev) => ({ ...prev, destinatario: null }));
+        } else {
+            if (value === "") {
+                setErrors((prev) => ({ ...prev, destinatario: "Por favor, selecione um destinatário." }));
+                setValidated(false);
+            } else {
+                setErrors((prev) => ({ ...prev, destinatario: null }));
+            }
+        }
     }
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const form = e.currentTarget;
+        let newErrors = {};
 
         if (!form.checkValidity()) {
             e.stopPropagation();
-            setValidated(true);
-            return;
         }
-        onSave(doaDinheiro);
-        setDoaDinheiro({
-            data: "",
-            valor: "",
-            destinatario: "",
-            doador: "",
-            telefone: "",
-            evento: "",
-            observacoes: ""
-        });
-        setValidated(false);
-    }
+        if (!dataDinheiro) {
+            newErrors.data = "A data deve ser preenchida."
+            setValidated(false);
+        } else if (new Date(dataDinheiro) > new Date()) {
+            newErrors.data = "A data não pode ser maior do que hoje";
+            setValidated(false);
+        }
 
+        if (!valorDinheiro) {
+            newErrors.valor = "O valor deve ser preenchido";
+            setValidated(false);
+        }else if (parseFloat(valorDinheiro) < 0) {
+            newErrors.valor = "Valor inválido";
+            setValidated(false);
+        }
+        if (!destinatario) {
+            newErrors.destinatario = "Por favor, selecione um destinatário";
+            setValidated(false);
+        }
+        setValidated(true);
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+        } else {
+            const doacao = {
+                id: 0,
+                data: form.data.value,
+                valor: parseFloat(form.valor.value),
+                destinatario: form.destinatario.value,
+                doador: form.doador.value,
+                telefone: form.telefone.value,
+                evento: form.evento.value,
+                observacoes: form.observacoes.value
+            };
+            console.log(doacao);
+        }
+    }
+    // -----
     return (
         // Formulário comum
         <Form noValidate validated={validated} onSubmit={handleSubmit}>
+            <Alert variant="success" show={showAlert}> <b> <FaCheckCircle></FaCheckCircle> </b> Doação cadastrada com sucesso! </Alert>
             <Row>
                 <Col md={6}>
                     <Card className="mb-4">
                         <Card.Body>
                             <Card.Title className="mb-4"><h5>Informações da Doação</h5></Card.Title>
-                            <Form.Group className="mb-3" >
+                            <Form.Group className="mb-3" controlId="data">
                                 <Form.Label>Data da Doação</Form.Label>
-                                <Form.Control type="date" name="data" onChange={handleChange} required />
+                                <Form.Control type="date" name="data" onChange={handleChangeData}
+                                    required
+                                    value={dataDinheiro}
+                                    isInvalid={!!errors.data}
+                                />
                                 <Form.Control.Feedback type="invalid">
-                                    Por favor, insira uma data.
+                                    {errors.data}
                                 </Form.Control.Feedback>
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="valor">
                                 <Form.Label>Valor da Doação</Form.Label>
-                                <Form.Control type="number" step={0.01} placeholder="R$ 0,00" name="valor" onChange={handleChange} required />
+                                <Form.Control type="number" step={0.01} placeholder="R$ 0,00" name="valor" required 
+                                onChange={handleChangeValor}
+                                value={valorDinheiro}
+                                isInvalid={!!errors.valor}
+                                />
                                 <Form.Control.Feedback type="invalid">
-                                    Por favor, insira um valor em dinheiro.
+                                    {errors.valor}
                                 </Form.Control.Feedback>
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="destinatario">
                                 <Form.Label>Destinatário</Form.Label>
-                                <Form.Select required name="destinatario" onChange={handleChange}>
+                                <Form.Select required name="destinatario" onChange={handleChamgeDestinatario}
+                                    value={destinatario}
+                                    isInvalid={!!errors.destinatario}>
                                     <option value="">Selecione o Destinatário</option>
                                     <option >Instituição (Asilo Vicentino)</option>
                                     <option >João da Silva (Quarto 12)</option>
@@ -86,25 +168,25 @@ function FormDinheiro({ onSave, onCancel }) {
                     <Card className="mb-4">
                         <Card.Body>
                             <Card.Title className="mb-4"><h5>Informações do Doador</h5></Card.Title>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="doador">
                                 <Form.Label>Nome do Doador (Opcional)</Form.Label>
-                                <Form.Control name="doador" onChange={handleChange} type="text" />
+                                <Form.Control name="doador" type="text" />
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="telefone">
                                 <Form.Label>Telefone para Contato (Opcional)</Form.Label>
-                                <Form.Control name="telefone" onChange={handleChange} type="tel" />
+                                <Form.Control name="telefone" type="tel" />
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="evento">
                                 <Form.Label>Evento Relacionado (Opcional)</Form.Label>
-                                <Form.Select name="evento" onChange={handleChange}>
+                                <Form.Select name="evento">
                                     <option value="">Nenhum evento relacionado</option>
                                     <option >Bazar Beneficente - Abril 2023</option>
                                     <option >Campanha do Agasalho 2023</option>
                                 </Form.Select>
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="observacoes">
                                 <Form.Label>Observações (Opcional)</Form.Label>
-                                <Form.Control name="observacoes" onChange={handleChange} as="textarea" rows={3} />
+                                <Form.Control name="observacoes" as="textarea" rows={3} />
                             </Form.Group>
                         </Card.Body>
                     </Card>
