@@ -20,6 +20,10 @@ function FormDinheiro({ onSave, onCancel }) {
     const [dataDinheiro, setDataDinheiro] = useState("");
     const [valorDinheiro, setValorDinheiro] = useState("");
     const [destinatario, setDestinatario] = useState("");
+    const [doador, setDoador] = useState("");
+    const [telefone, setTelefone] = useState("");
+    const [evento, setEvento] = useState("");
+    const [observacoes, setObservacoes] = useState("");
     // -----
     // Funções de manipulação de eventos
 
@@ -40,10 +44,10 @@ function FormDinheiro({ onSave, onCancel }) {
     }
 
     const handleChangeValor = (e) => {
-        const value = e.target.value;
+        const value = e.target.value.replace(/[a-zA-Z]/g, '');
         setValorDinheiro(value);
         if (value && !isNaN(value) && parseFloat(value) >= 0) {
-            setErrors((prev) => ({...prev, valor: null}));
+            setErrors((prev) => ({ ...prev, valor: null }));
         } else {
             if (value === "") {
                 setErrors((prev) => ({ ...prev, valor: "O valor deve ser preenchido" }));
@@ -70,6 +74,37 @@ function FormDinheiro({ onSave, onCancel }) {
         }
     }
 
+    const handleChangeDoador = (e) => {
+        const value = e.target.value.replace(/[0-9]/g, '');
+        setDoador(value);
+    }
+
+    const handleChangeTelefone = (e) => {
+        const value = e.target.value;
+        const numeros = value.replace(/\D/g, '');
+
+        let formatado = '';
+
+        if (numeros.length <= 10) {
+            // (XX) XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else {
+            // (XX) 9XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        }
+        setTelefone(formatado); // Atualiza o estado com o valor formatado
+    }       
+
+    const handleChangeObservacoes = (e) => {
+        const value = e.target.value.replace(/[0-9]/g, '');
+        setObservacoes(value);
+    }
+
+    const handleChangeEvento = (e) => {
+        const value = e.target.value;
+        setEvento(value);
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -89,7 +124,7 @@ function FormDinheiro({ onSave, onCancel }) {
         if (!valorDinheiro) {
             newErrors.valor = "O valor deve ser preenchido";
             setValidated(false);
-        }else if (parseFloat(valorDinheiro) < 0) {
+        } else if (parseFloat(valorDinheiro) < 0) {
             newErrors.valor = "Valor inválido";
             setValidated(false);
         }
@@ -101,19 +136,8 @@ function FormDinheiro({ onSave, onCancel }) {
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
         } else {
-            const doacao = {
-                id: 0,
-                data: form.data.value,
-                valor: parseFloat(form.valor.value),
-                destinatario: form.destinatario.value,
-                doador: form.doador.value,
-                telefone: form.telefone.value,
-                evento: form.evento.value,
-                observacoes: form.observacoes.value
-            };
             setValidated(true);
             setShowAlert(true);
-            console.log(doacao);
         }
     }
     // -----
@@ -139,10 +163,10 @@ function FormDinheiro({ onSave, onCancel }) {
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="valor">
                                 <Form.Label>Valor da Doação</Form.Label>
-                                <Form.Control type="number" step={0.01} placeholder="R$ 0,00" name="valor" required 
-                                onChange={handleChangeValor}
-                                value={valorDinheiro}
-                                isInvalid={!!errors.valor}
+                                <Form.Control type="number" step={0.01} placeholder="R$ 0,00" name="valor" required
+                                    onChange={handleChangeValor}
+                                    value={valorDinheiro}
+                                    isInvalid={!!errors.valor}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {errors.valor}
@@ -171,13 +195,23 @@ function FormDinheiro({ onSave, onCancel }) {
                             <Card.Title className="mb-4"><h5>Informações do Doador</h5></Card.Title>
                             <Form.Group className="mb-3" controlId="doador">
                                 <Form.Label>Nome do Doador (Opcional)</Form.Label>
-                                <Form.Control name="doador" type="text" />
+                                <Form.Control onChange={handleChangeDoador}
+                                    value={doador}
+                                    name="doador" type="text" />
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="telefone">
                                 <Form.Label>Telefone para Contato (Opcional)</Form.Label>
-                                <Form.Control name="telefone" type="tel" />
+                                <Form.Control
+                                    onChange={handleChangeTelefone}
+                                    value={telefone}
+                                    name="telefone" type="tel" 
+                                    maxLength={15}
+                                    />
                             </Form.Group>
-                            <Form.Group className="mb-3" controlId="evento">
+                            <Form.Group className="mb-3" 
+                            onChange={handleChangeEvento}
+                            value={evento}
+                            controlId="evento">
                                 <Form.Label>Evento Relacionado (Opcional)</Form.Label>
                                 <Form.Select name="evento">
                                     <option value="">Nenhum evento relacionado</option>
@@ -187,7 +221,10 @@ function FormDinheiro({ onSave, onCancel }) {
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="observacoes">
                                 <Form.Label>Observações (Opcional)</Form.Label>
-                                <Form.Control name="observacoes" as="textarea" rows={3} />
+                                <Form.Control name="observacoes" 
+                                onChange={handleChangeObservacoes}
+                                value={observacoes}
+                                as="textarea" rows={3} />
                             </Form.Group>
                         </Card.Body>
                     </Card>
