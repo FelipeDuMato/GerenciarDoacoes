@@ -62,7 +62,7 @@ function FormDinheiro({ onSave, onCancel }) {
             setErrors((prev) => ({ ...prev, destinatario: null }));
         } else {
             if (value === "") {
-                setErrors((prev) => ({ ...prev, destinatario: "Por favor, selecione um destinatário." }));
+                setErrors((prev) => ({ ...prev, destinatario: "Por favor, selecione um destinatário" }));
                 setValidated(false);
             } else {
                 setErrors((prev) => ({ ...prev, destinatario: null }));
@@ -79,7 +79,7 @@ function FormDinheiro({ onSave, onCancel }) {
             e.stopPropagation();
         }
         if (!dataDinheiro) {
-            newErrors.data = "A data deve ser preenchida."
+            newErrors.data = "A data deve ser preenchida"
             setValidated(false);
         } else if (new Date(dataDinheiro) > new Date()) {
             newErrors.data = "A data não pode ser maior do que hoje";
@@ -97,7 +97,6 @@ function FormDinheiro({ onSave, onCancel }) {
             newErrors.destinatario = "Por favor, selecione um destinatário";
             setValidated(false);
         }
-        setValidated(true);
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -112,6 +111,8 @@ function FormDinheiro({ onSave, onCancel }) {
                 evento: form.evento.value,
                 observacoes: form.observacoes.value
             };
+            setValidated(true);
+            setShowAlert(true);
             console.log(doacao);
         }
     }
