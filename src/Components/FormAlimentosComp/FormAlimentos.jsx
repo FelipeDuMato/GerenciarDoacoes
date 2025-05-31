@@ -1,5 +1,6 @@
-import { Card, Col, Row, Form, Button } from "react-bootstrap";
+import { Card, Col, Row, Form, Button, Alert } from "react-bootstrap";
 import { useState } from "react";
+import { FaCheckCircle } from "react-icons/fa";
 
 function FormAlimentos({ onSave, onCancel }) {
 
@@ -23,6 +24,10 @@ function FormAlimentos({ onSave, onCancel }) {
   const [quantidadeAlimentos, setQuantidadeAlimentos] = useState("");
   const [descricaoAlimentos, setDescricaoAlimentos] = useState("");
   const [destinatarioAlimentos, setDestinatarioAlimentos] = useState("");
+  const [doadorAlimentos, setDoadorAlimentos] = useState("");
+  const [telefoneAlimentos, setTelefoneAlimentos] = useState("");
+  const [eventoAlimentos, setEventoAlimentos] = useState("");
+  const [observacoesAlimentos, setObservacoesAlimentos] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
 
@@ -79,7 +84,7 @@ function FormAlimentos({ onSave, onCancel }) {
   }
 
   const handleChangeDescricao = (e) => {
-    const value = e.target.value.replace(/[0-9]/g, '');
+    const value = e.target.value;
     setDescricaoAlimentos(value);
     if (value && isNaN(value)) {
       setErrors((prev) => ({ ...prev, descricao: null }));
@@ -105,6 +110,37 @@ function FormAlimentos({ onSave, onCancel }) {
       }
     }
   }
+
+const handleChangeDoador = (e) => {
+  const value = e.target.value.replace(/[0-9]/g, '');
+  setDoadorAlimentos(value);
+}
+
+const handleChangeTelefone = (e) => {
+  const value = e.target.value;
+        const numeros = value.replace(/\D/g, '');
+
+        let formatado = '';
+
+        if (numeros.length <= 10) {
+            // (XX) XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else {
+            // (XX) 9XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        }
+        setTelefoneAlimentos(formatado); // Atualiza o estado com o valor formatado
+    }
+
+const handleChangeEvento = (e) => {
+  const value = e.target.value;
+  setEventoAlimentos(value);
+}
+
+const handleChangeObservacoes = (e) => {
+  const value = e.target.value;
+  setObservacoesAlimentos(value);
+}
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -151,6 +187,10 @@ function FormAlimentos({ onSave, onCancel }) {
     } else {
       setErrors({});
       setValidated(true);
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
     };
 }
 
@@ -159,6 +199,7 @@ function FormAlimentos({ onSave, onCancel }) {
 return (
   // Formulário comum
   <Form noValidate validated={validated} onSubmit={handleSubmit}>
+    <Alert variant="success" show={showAlert}> <b> <FaCheckCircle></FaCheckCircle> </b> Doação cadastrada com sucesso! </Alert>
     <Row>
       <Col md={6}>
         <Card className="mb-4">
@@ -228,15 +269,24 @@ return (
             <Card.Title className="mb-4"><h5>Informações do Doador</h5></Card.Title>
             <Form.Group className="mb-3">
               <Form.Label>Nome do Doador (Opcional)</Form.Label>
-              <Form.Control name="doador" type="text" />
+              <Form.Control name="doador" type="text" 
+              onChange={handleChangeDoador}
+              value={doadorAlimentos}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Telefone para Contato (Opcional)</Form.Label>
-              <Form.Control name="telefone" type="tel" />
+              <Form.Control name="telefone" 
+              onChange={handleChangeTelefone}
+              value={telefoneAlimentos}
+              type="tel" />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Evento Relacionado (Opcional)</Form.Label>
-              <Form.Select name="evento">
+              <Form.Select 
+              onChange={handleChangeEvento}
+              value={eventoAlimentos}
+              name="evento">
                 <option value="">Nenhum evento relacionado</option>
                 <option >Bazar Beneficente - Abril 2023</option>
                 <option >Campanha do Agasalho 2023</option>
@@ -244,7 +294,10 @@ return (
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Observações (Opcional)</Form.Label>
-              <Form.Control name="observacoes" as="textarea" rows={3} />
+              <Form.Control 
+              onChange={handleChangeObservacoes}
+              value={observacoesAlimentos}
+              name="observacoes" as="textarea" rows={3} />
             </Form.Group>
           </Card.Body>
         </Card>

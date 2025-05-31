@@ -96,7 +96,7 @@ function FormDinheiro({ onSave, onCancel }) {
     }       
 
     const handleChangeObservacoes = (e) => {
-        const value = e.target.value.replace(/[0-9]/g, '');
+        const value = e.target.value;
         setObservacoes(value);
     }
 
@@ -138,6 +138,9 @@ function FormDinheiro({ onSave, onCancel }) {
         } else {
             setValidated(true);
             setShowAlert(true);
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
         }
     }
     // -----

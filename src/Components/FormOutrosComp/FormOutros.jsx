@@ -1,5 +1,6 @@
-import { Card, Col, Row, Form, Button } from "react-bootstrap";
+import { Card, Col, Row, Form, Button, Alert } from "react-bootstrap";
 import { useState } from "react";
+import { FaCheckCircle } from "react-icons/fa";
 
 function FormOutros(onSave, onCancel) {
   
@@ -23,6 +24,10 @@ function FormOutros(onSave, onCancel) {
   const [descricaoOutros, setDescricaoOutros] = useState("");
   const [destinatarioOutros, setDestinatarioOutros] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [doadorOutros, setDoadorOutros] = useState("");
+  const [telefoneOutros, setTelefoneOutros] = useState("");
+  const [eventoOutros, setEventoOutros] = useState("");
+  const [observacoesOutros, setObservacoesOutros] = useState("");
 
   // Funções de manipulação de eventos
   const handleChangleData = (e) => {
@@ -74,7 +79,7 @@ function FormOutros(onSave, onCancel) {
   }
 
   const handleChangeDescricao = (e) => {
-    const value = e.target.value.replace(/[0-9]/g, '');
+    const value = e.target.value;
     setDescricaoOutros(value);
     if (value && isNaN(value)) {
       setErrors((prev) => ({ ...prev, descricao: null }));
@@ -102,6 +107,37 @@ function FormOutros(onSave, onCancel) {
     }
   }
 
+const handleChangeDoador = (e) => {
+    const value = e.target.value.replace(/[0-9]/g, '');
+    setDoadorOutros(value);
+}
+
+const handleChangeTelefone = (e) => {
+    const value = e.target.value;
+        const numeros = value.replace(/\D/g, '');
+
+        let formatado = '';
+
+        if (numeros.length <= 10) {
+            // (XX) XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else {
+            // (XX) 9XXXX-XXXX
+            formatado = numeros.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        }
+        setTelefoneOutros(formatado); // Atualiza o estado com o valor formatado
+}
+
+const handleChangeEvento = (e) => {
+    const value = e.target.value;
+    setEventoOutros(value);
+}
+
+const handleChangeObservacoes = (e) => {
+    const value = e.target.value;
+    setObservacoesOutros(value);
+}
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -112,40 +148,52 @@ function FormOutros(onSave, onCancel) {
     }
     if (dataOutros === "") {
       newErrors.data = "A data deve ser preenchida";
+      setValidated(false);
     } else if (new Date(dataOutros) > new Date()) {
       newErrors.data = "A data não pode ser maior do que hoje";
+      setValidated(false);
     }
     if (itemOutros === "") {
       newErrors.item = "O item doado deve ser preenchido";
+      setValidated(false);
     } else if (!isNaN(itemOutros)) {
       newErrors.item = "O item doado deve ser um texto válido";
+      setValidated(false);
     }
     if (quantidadeOutros === "") {
       newErrors.quantidade = "A quantidade deve ser preenchida";
+      setValidated(false);
     } else if (isNaN(quantidadeOutros) || quantidadeOutros <= 0) {
       newErrors.quantidade = "Quantidade inválida";
+      setValidated(false);
     }
     if (descricaoOutros === "") {
       newErrors.descricao = "A descrição deve ser preenchida";
+      setValidated(false);
     } else if (!isNaN(descricaoOutros)) {
       newErrors.descricao = "A descrição deve ser um texto válido";
+      setValidated(false);
     }
     if (destinatarioOutros === "") {
       newErrors.destinatario = "O destinatário deve ser preenchido";
+      setValidated(false);
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setValidated(false);
     } else {
       setErrors({});
       setValidated(true);
       setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false)
+      }, 3000)
+      }
     }
-  }
 
     return(
             // Formulário comum
     <Form noValidate validated={validated} onSubmit={handleSubmit}>
+      <Alert variant="success" show={showAlert}> <b> <FaCheckCircle></FaCheckCircle> </b> Doação cadastrada com sucesso! </Alert> 
       <Row>
         <Col md={6}>
           <Card className="mb-4">
@@ -215,15 +263,24 @@ function FormOutros(onSave, onCancel) {
               <Card.Title className="mb-4"><h5>Informações do Doador</h5></Card.Title>
               <Form.Group className="mb-3">
                 <Form.Label>Nome do Doador (Opcional)</Form.Label>
-                <Form.Control name="doador" type="text" />
+                <Form.Control 
+                onChange={handleChangeDoador}
+                value={doadorOutros}
+                name="doador" type="text" />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Telefone para Contato (Opcional)</Form.Label>
-                <Form.Control name="telefone" type="tel" />
+                <Form.Control 
+                onChange={handleChangeTelefone}
+                value={telefoneOutros}
+                name="telefone" type="tel" />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Evento Relacionado (Opcional)</Form.Label>
-                <Form.Select name="evento">
+                <Form.Select 
+                onChange={handleChangeEvento}
+                value={eventoOutros}
+                name="evento">
                   <option value="">Nenhum evento relacionado</option>
                   <option >Bazar Beneficente - Abril 2023</option>
                   <option >Campanha do Agasalho 2023</option>
@@ -231,7 +288,10 @@ function FormOutros(onSave, onCancel) {
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Observações (Opcional)</Form.Label>
-                <Form.Control name="observacoes" as="textarea" rows={3} />
+                <Form.Control 
+                onChange={handleChangeObservacoes}
+                value={observacoesOutros}
+                name="observacoes" as="textarea" rows={3} />
               </Form.Group>
             </Card.Body>
           </Card>
